@@ -1,568 +1,112 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HENRY ALPHA TERMINAL V8.0</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&display=swap');
-        * { font-family: 'JetBrains Mono', monospace; touch-action: manipulation; user-select: none; }
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: #08080a; }
-        ::-webkit-scrollbar-thumb { background: #1e2028; border-radius: 2px; }
-        .gmgn-card { background: #111318; border: 1px solid #1a1d24; }
-        .gmgn-card:hover { border-color: #2b303c; }
-        .glow-buy { box-shadow: 0 0 15px rgba(34, 197, 94, 0.25); }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HENRY ALPHA TERMINAL</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#080b10;--panel:#101620;--line:#202b38;--muted:#8c9bad;--green:#31e6a0;--red:#ff5d72;--amber:#ffc857}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#111e2b 0,#080b10 48%);color:#edf4fb;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.panel{background:linear-gradient(145deg,rgba(17,24,35,.97),rgba(12,17,25,.97));border:1px solid var(--line);border-radius:16px}
+.muted{color:var(--muted)}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.btn{border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:#141d29;color:#dce7f3;font-weight:700}
+.btn:hover{border-color:#3d5a70}.btn.active{background:#12382d;color:var(--green);border-color:#23694f}
+input{background:#080d13;border:1px solid #293747;border-radius:10px;color:#f4f8fc;padding:12px;outline:none}
+input:focus{border-color:var(--green)}.stat{padding:14px;border-radius:12px;background:#0b1119;border:1px solid #1d2936}
+.pill{border:1px solid #2a3948;border-radius:999px;padding:4px 8px;font-size:11px}
+.token-row{width:100%;text-align:left;border:1px solid #1c2936;border-radius:12px;padding:12px;background:#0c121a;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
+.token-row:hover{border-color:#3a5d70;background:#101b27}
+@media(max-width:900px){.main-grid{grid-template-columns:1fr!important}.header-grid{grid-template-columns:1fr!important}.search-row{width:100%}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+</style>
 </head>
-<body class="bg-[#0a0b0e] text-slate-100 min-h-screen flex flex-col p-2 space-y-2 overflow-x-hidden">
-
-    <!-- TOP HEADER -->
-    <header class="gmgn-card rounded-xl p-2.5 flex items-center justify-between shadow-2xl">
-        <div class="flex items-center space-x-3">
-            <div class="bg-emerald-500/10 border border-emerald-500/30 p-2 rounded-lg text-emerald-400">
-                <i class="fa-solid fa-chart-line text-lg animate-pulse"></i>
-            </div>
-            <div>
-                <div class="flex items-center space-x-2">
-                    <h1 class="font-extrabold text-sm tracking-wider text-slate-100 uppercase">HENRY ALPHA TERMINAL V8.0</h1>
-                    <span class="px-1.5 py-0.5 text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded">TABLET OPTIMIZED</span>
-                </div>
-                <div class="text-[10px] text-slate-400 flex items-center space-x-3 mt-0.5">
-                    <span>SOL/USD: <strong class="text-slate-200">$184.20</strong></span>
-                    <span>Backend Status: <strong class="text-emerald-400">ONLINE</strong></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- SEARCH BAR -->
-        <div class="flex items-center space-x-2 bg-[#08090b] border border-[#20242f] p-1.5 rounded-lg w-72 focus-within:border-emerald-500 transition">
-            <i class="fa-solid fa-magnifying-glass text-slate-500 text-xs ml-1"></i>
-            <input type="text" id="manual-mint" placeholder="Search Symbol or Paste Mint Address..." class="bg-transparent text-xs text-slate-100 outline-none w-full font-mono placeholder-slate-600">
-            <button onclick="searchToken()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[10px] font-extrabold px-2.5 py-1 rounded">SEARCH</button>
-        </div>
-
-        <!-- CONTROLS -->
-        <div class="flex items-center space-x-2">
-            <div class="bg-[#08090b] border border-[#20242f] rounded px-2 py-1 flex flex-col">
-                <span class="text-[8px] text-slate-500 uppercase font-bold">Active Wallet</span>
-                <select id="wallet-selector" class="bg-transparent text-xs text-emerald-400 font-bold outline-none cursor-pointer">
-                    <option value="wallet1">Main Sniper (7xK...3p9)</option>
-                    <option value="wallet2">Alpha Vault (9mQ...2z1)</option>
-                </select>
-            </div>
-            <button onclick="connectPhantomWallet()" id="wallet-btn" class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-3 py-2 rounded-lg text-xs shadow-lg">
-                <span id="wallet-btn-label">CONNECT PHANTOM</span>
-            </button>
-        </div>
-    </header>
-
-    <!-- MAIN GRID -->
-    <main class="grid grid-cols-12 gap-2 flex-grow">
-
-        <!-- LEFT COLUMN: DISCOVERY & TRACKED WALLETS -->
-        <section class="col-span-4 flex flex-col space-y-2">
-            <div class="gmgn-card rounded-lg p-1 flex items-center justify-between text-[10px] font-bold space-x-1">
-                <button onclick="switchCategory('hot')" id="cat-hot" class="flex-1 py-1 rounded text-center bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">🔥 Hot</button>
-                <button onclick="switchCategory('trending')" id="cat-trending" class="flex-1 py-1 rounded text-center text-slate-400">📈 Trending</button>
-                <button onclick="switchCategory('new')" id="cat-new" class="flex-1 py-1 rounded text-center text-slate-400">✨ New</button>
-            </div>
-
-            <!-- DISCOVERY FEED LIST -->
-            <div class="gmgn-card rounded-lg p-2 flex flex-col h-[280px] overflow-hidden">
-                <div class="flex items-center justify-between text-[9px] text-slate-500 font-bold uppercase pb-1.5 border-b border-[#1f232d] px-1">
-                    <span>Token / Name / CA</span>
-                    <span class="text-center">Vol / TXs</span>
-                    <span class="text-right">MC / 1m%</span>
-                </div>
-                <div id="discovery-feed-list" class="overflow-y-auto space-y-1.5 pr-1 mt-1.5 flex-grow">
-                    <!-- Dynamic Tokens -->
-                </div>
-            </div>
-
-            <!-- TRACKED WALLETS MANAGER -->
-            <div class="gmgn-card rounded-lg p-2.5 flex flex-col flex-grow space-y-2">
-                <div class="flex items-center justify-between text-[9px] text-slate-400 font-bold uppercase border-b border-[#1a1d24] pb-1">
-                    <span>Active Tracked Wallets</span>
-                    <button onclick="runEarlyBuyerScan()" class="bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 px-2 py-0.5 rounded text-[8px] font-extrabold">SCAN WINNERS</button>
-                </div>
-                <div class="flex space-x-1">
-                    <input type="text" id="new-wallet-input" placeholder="Paste Wallet Address..." class="bg-[#08090b] border border-[#20242f] text-[9px] text-slate-100 px-2 py-1 rounded outline-none w-full font-mono placeholder-slate-600">
-                    <button onclick="addNewTrackedWallet()" class="bg-emerald-500 text-slate-950 font-bold px-2.5 py-1 rounded text-[9px]">SAVE</button>
-                </div>
-                <div id="tracked-wallets-container" class="overflow-y-auto space-y-1.5 max-h-[140px] text-[9px]">
-                    <div class="flex items-center justify-between bg-[#08090b] p-2 rounded border border-[#1a1d24]">
-                        <div>
-                            <div class="font-bold text-slate-200">7xK3...p9W <span class="text-[7px] bg-emerald-500/20 text-emerald-400 px-1 rounded">ACTIVE</span></div>
-                            <div class="text-[8px] text-slate-400 mt-0.5">Last Buy: <strong class="text-white">$YMB</strong> (4.5 SOL)</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- CENTER COLUMN: CHART & EXECUTION -->
-        <section class="col-span-5 flex flex-col space-y-2">
-            <!-- SIGNAL BANNER -->
-            <div id="signal-banner" class="bg-emerald-950/70 border-2 border-emerald-500 rounded-lg p-2.5 space-y-1.5 glow-buy">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2.5">
-                        <div class="bg-emerald-500 text-slate-950 p-2 rounded-lg font-black text-sm">
-                            <i class="fa-solid fa-circle-arrow-up"></i>
-                        </div>
-                        <div>
-                            <div class="text-[8px] uppercase font-extrabold text-emerald-400">Execution Signal Engine</div>
-                            <div id="signal-title" class="text-xs font-black text-emerald-200">🟢 STRONG BUY ACCUMULATION</div>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-[7px] text-slate-400 uppercase font-bold">Confidence</div>
-                        <div class="text-xs font-black text-emerald-400">99.1%</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TOKEN STATS -->
-            <div class="gmgn-card rounded-lg p-2.5 space-y-1.5">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="flex items-center space-x-2">
-                            <span id="curr-symbol" class="text-base font-black text-white">YMB</span>
-                            <span class="px-1.5 py-0.5 text-[8px] bg-emerald-500/20 text-emerald-400 rounded font-bold uppercase">MINT REVOKED</span>
-                        </div>
-                        <div class="text-xs font-extrabold text-slate-200 mt-0.5">
-                            MC: <strong id="curr-mc-val" class="text-emerald-400">$69.6K</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- LIVE MOVING CHART -->
-            <div class="gmgn-card rounded-lg p-2 flex-grow flex flex-col min-h-[220px] relative">
-                <div class="flex items-center justify-between text-[9px] text-slate-400 font-bold uppercase mb-1">
-                    <span>Live Moving Candlestick & Volume Stream</span>
-                    <span class="text-emerald-400 animate-pulse"><i class="fa-solid fa-circle text-[6px] mr-1"></i>STREAMING TICKS</span>
-                </div>
-                <div class="flex-grow relative w-full h-full">
-                    <canvas id="gmgnChart"></canvas>
-                </div>
-            </div>
-
-            <!-- BUY / SELL BUTTONS -->
-            <div class="grid grid-cols-2 gap-3 pt-1">
-                <button onclick="executeLiveTrade('BUY')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-xl text-base tracking-wider shadow-lg">
-                    Buy (MEV Shield)
-                </button>
-                <button onclick="executeLiveTrade('SELL')" class="bg-rose-500 hover:bg-rose-400 text-white font-black py-3.5 rounded-xl text-base tracking-wider shadow-lg">
-                    Sell 100%
-                </button>
-            </div>
-        </section>
-
-        <!-- RIGHT COLUMN: RADAR & ORDER FLOW -->
-        <section class="col-span-3 flex flex-col space-y-2">
-            <!-- QUICK PRESETS -->
-            <div class="gmgn-card rounded-lg p-2.5 space-y-1.5">
-                <div class="text-[9px] text-slate-400 font-bold uppercase border-b border-[#1a1d24] pb-1 flex justify-between">
-                    <span>Quick Execution Presets</span>
-                    <i class="fa-solid fa-bolt text-amber-400"></i>
-                </div>
-                <div class="grid grid-cols-3 gap-1 text-[9px]">
-                    <button onclick="quickSell(25)" class="bg-[#181b22] border border-[#282d3a] text-slate-200 font-bold py-1.5 rounded">Sell 25%</button>
-                    <button onclick="quickSell(50)" class="bg-[#181b22] border border-[#282d3a] text-slate-200 font-bold py-1.5 rounded">Sell 50%</button>
-                    <button onclick="quickSell(100)" class="bg-rose-500/20 border border-rose-500/40 text-rose-400 font-bold py-1.5 rounded">Sell 100%</button>
-                </div>
-            </div>
-
-            <!-- LIVE ORDER FLOW STREAM -->
-            <div class="gmgn-card rounded-lg p-2 flex-grow flex flex-col h-[200px]">
-                <div class="text-[9px] text-slate-400 font-bold uppercase border-b border-[#1a1d24] pb-1 px-1 flex justify-between">
-                    <span>Live Order Flow Stream</span>
-                    <span class="text-[8px] text-emerald-400 animate-pulse">STREAMING</span>
-                </div>
-                <div id="order-flow" class="overflow-y-auto space-y-1.5 mt-1 pr-1 flex-grow text-[8.55px]">
-                    <div class="flex items-center justify-between bg-[#08090b] px-1.5 py-1 rounded">
-                        <span class="text-emerald-400 font-bold">🟢 BUY 1.4 SOL</span>
-                        <span class="text-slate-400 font-mono">$YMB • 7xK3...p9W</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- LIVE TERMINAL ENGINE -->
-    <script>
-        
-let chart;
-let activeCategory = "hot";
-let tokens = [];
-let selectedAddress = "";
-let loading = false;
-
-const API = "https://api.dexscreener.com";
-
-function money(n) {
-  n = Number(n || 0);
-  if (n >= 1e9) return "$" + (n / 1e9).toFixed(2) + "B";
-  if (n >= 1e6) return "$" + (n / 1e6).toFixed(2) + "M";
-  if (n >= 1e3) return "$" + (n / 1e3).toFixed(1) + "K";
-  return "$" + n.toFixed(2);
-}
-
-function shortAddress(s) {
-  return s ? s.slice(0, 5) + "..." + s.slice(-5) : "Unknown";
-}
-
-async function getJSON(url) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error("API HTTP " + r.status);
-  return r.json();
-}
-
-function setStatus(message, bad = false) {
-  const title = document.getElementById("signal-title");
-  if (title) title.textContent = message;
-
-  const banner = document.getElementById("signal-banner");
-  if (banner) {
-    banner.classList.remove("glow-buy");
-    banner.classList.toggle("border-rose-500", bad);
-    banner.classList.toggle("border-emerald-500", !bad);
-  }
-}
-
-async function loadTokens() {
-  if (loading) return;
-  loading = true;
-
-  try {
-    const profiles = await getJSON(
-      API + "/token-profiles/latest/v1"
-    );
-
-    const solana = profiles
-      .filter(x => x.chainId === "solana" && x.tokenAddress)
-      .slice(0, 15);
-
-    const results = await Promise.all(
-      solana.map(async p => {
-        try {
-          const data = await getJSON(
-            API + "/latest/dex/tokens/" + encodeURIComponent(p.tokenAddress)
-          );
-
-          const pairs = (data.pairs || [])
-            .filter(x => x.chainId === "solana");
-
-          if (!pairs.length) return null;
-
-          // Prefer the pair with the highest reported liquidity.
-          const pair = pairs.sort(
-            (a, b) =>
-              Number(b.liquidity?.usd || 0) -
-              Number(a.liquidity?.usd || 0)
-          )[0];
-
-          const tx = pair.txns?.h1 || {};
-          const buys = Number(tx.buys || 0);
-          const sells = Number(tx.sells || 0);
-          const volume = Number(pair.volume?.h1 || 0);
-          const liquidity = Number(pair.liquidity?.usd || 0);
-          const change = Number(pair.priceChange?.h1 || 0);
-          const total = buys + sells;
-
-          let signal = "WAIT — INSUFFICIENT DATA";
-
-          if (total >= 10 && liquidity > 0) {
-            const imbalance = (buys - sells) / total;
-
-            if (imbalance > 0.2 && change > 0) {
-              signal = "BUY PRESSURE — VERIFY";
-            } else if (imbalance < -0.2 && change < 0) {
-              signal = "SELL PRESSURE — VERIFY";
-            } else {
-              signal = "WAIT — MIXED SIGNALS";
-            }
-          }
-
-          return {
-            name: pair.baseToken?.name || "Unknown",
-            symbol: pair.baseToken?.symbol || "???",
-            address: p.tokenAddress,
-            pairAddress: pair.pairAddress,
-            price: Number(pair.priceUsd || 0),
-            liquidity,
-            volume,
-            buys,
-            sells,
-            change,
-            signal,
-            updated: Date.now()
-          };
-        } catch (e) {
-          console.warn("Token request failed:", p.tokenAddress, e);
-          return null;
-        }
-      })
-    );
-
-    tokens = results.filter(Boolean);
-
-    if (!tokens.length) {
-      throw new Error("No usable Solana trading pairs returned");
-    }
-
-    renderFeed();
-    updateSelectedToken();
-
-    const count = tokens.length;
-    setStatus("CONNECTED — " + count + " TOKENS LOADED");
-
-    console.log("Real market data loaded:", tokens);
-  } catch (e) {
-    console.error("Market data error:", e);
-    setStatus("DATA ERROR — " + e.message, true);
-  } finally {
-    loading = false;
-  }
-}
-
-function renderFeed() {
-  const container = document.getElementById("discovery-feed-list");
-  container.replaceChildren();
-
-  let list = [...tokens];
-
-  if (activeCategory === "hot") {
-    list.sort((a, b) => b.volume - a.volume);
-  } else if (activeCategory === "trending") {
-    list.sort((a, b) => b.change - a.change);
-  } else {
-    list.sort((a, b) => b.buys + b.sells - a.buys - a.sells);
-  }
-
-  for (const t of list) {
-    const card = document.createElement("button");
-    card.type = "button";
-    card.className =
-      "gmgn-card p-2 rounded-lg flex items-center justify-between " +
-      "w-full text-left gap-2";
-
-    const left = document.createElement("div");
-    const symbol = document.createElement("div");
-    symbol.className = "font-extrabold text-xs text-white";
-    symbol.textContent = t.symbol;
-
-    const name = document.createElement("div");
-    name.className = "text-[9px] text-slate-400";
-    name.textContent = t.name + " · " + shortAddress(t.address);
-
-    left.append(symbol, name);
-
-    const middle = document.createElement("div");
-    middle.className = "text-center text-[9px]";
-    middle.textContent =
-      money(t.volume) + " vol · " + (t.buys + t.sells) + " tx";
-
-    const right = document.createElement("div");
-    right.className = "text-right text-[10px]";
-
-    const price = document.createElement("div");
-    price.className = "font-bold text-white";
-    price.textContent = money(t.price);
-
-    const change = document.createElement("div");
-    change.className =
-      t.change >= 0 ? "text-emerald-400" : "text-rose-400";
-    change.textContent =
-      (t.change > 0 ? "+" : "") + t.change.toFixed(2) + "%";
-
-    right.append(price, change);
-    card.append(left, middle, right);
-    card.onclick = () => selectToken(t);
-    container.appendChild(card);
-  }
-}
-
-function selectToken(t) {
-  selectedAddress = t.address;
-  document.getElementById("curr-symbol").textContent = t.symbol;
-  document.getElementById("curr-mc-val").textContent = money(t.liquidity);
-  updateSelectedToken();
-}
-
-function updateSelectedToken() {
-  const t = tokens.find(x => x.address === selectedAddress) || tokens[0];
-  if (!t) return;
-
-  selectedAddress = t.address;
-  document.getElementById("curr-symbol").textContent = t.symbol;
-  document.getElementById("curr-mc-val").textContent = money(t.liquidity);
-
-  setStatus(t.signal, t.signal.startsWith("SELL"));
-
-  if (chart) {
-    chart.data.labels = ["1h buys", "1h sells"];
-    chart.data.datasets[0].label = "Transaction counts";
-    chart.data.datasets[0].data = [t.buys, t.sells];
-    chart.data.datasets[0].backgroundColor = ["#22c55e", "#f43f5e"];
-    chart.update();
-  }
-
-  const flow = document.getElementById("order-flow");
-  flow.replaceChildren();
-
-  const row = document.createElement("div");
-  row.className = "text-slate-300 p-2";
-  row.textContent =
-    "Last API snapshot: " + new Date(t.updated).toLocaleTimeString() +
-    " · 1h volume " + money(t.volume) +
-    " · buys " + t.buys +
-    " · sells " + t.sells +
-    " · liquidity " + money(t.liquidity);
-
-  flow.appendChild(row);
-}
-
-function initLiveChart() {
-  chart = new Chart(document.getElementById("gmgnChart"), {
-    type: "bar",
-    data: {
-      labels: ["1h buys", "1h sells"],
-      datasets: [{
-        label: "Transaction counts",
-        data: [0, 0],
-        backgroundColor: ["#22c55e", "#f43f5e"]
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: false,
-      scales: {
-        x: { ticks: { color: "#94a3b8" } },
-        y: { beginAtZero: true, ticks: { color: "#94a3b8" } }
-      },
-      plugins: { legend: { display: false } }
-    }
-  });
-}
-
-function switchCategory(cat) {
-  activeCategory = cat;
-
-  ["hot", "trending", "new"].forEach(c => {
-    const btn = document.getElementById("cat-" + c);
-    btn.className = c === cat
-      ? "flex-1 py-1 rounded text-center bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-      : "flex-1 py-1 rounded text-center text-slate-400";
-  });
-
-  renderFeed();
-}
-
-async function searchToken() {
-  const input = document.getElementById("manual-mint");
-  const query = input.value.trim();
-  if (!query) return;
-
-  try {
-    const data = await getJSON(
-      API + "/latest/dex/search?q=" + encodeURIComponent(query)
-    );
-
-    const pairs = (data.pairs || [])
-      .filter(p => p.chainId === "solana");
-
-    if (!pairs.length) {
-      alert("No Solana trading pairs found for that search.");
-      return;
-    }
-
-    const p = pairs.sort(
-      (a, b) =>
-        Number(b.liquidity?.usd || 0) -
-        Number(a.liquidity?.usd || 0)
-    )[0];
-
-    const t = {
-      name: p.baseToken?.name || "Unknown",
-      symbol: p.baseToken?.symbol || "???",
-      address: p.baseToken?.address,
-      pairAddress: p.pairAddress,
-      price: Number(p.priceUsd || 0),
-      liquidity: Number(p.liquidity?.usd || 0),
-      volume: Number(p.volume?.h1 || 0),
-      buys: Number(p.txns?.h1?.buys || 0),
-      sells: Number(p.txns?.h1?.sells || 0),
-      change: Number(p.priceChange?.h1 || 0),
-      updated: Date.now()
-    };
-
-    const total = t.buys + t.sells;
-    t.signal = total < 10 ? "WAIT — INSUFFICIENT DATA"
-      : t.buys > t.sells && t.change > 0 ? "BUY PRESSURE — VERIFY"
-      : t.sells > t.buys && t.change < 0 ? "SELL PRESSURE — VERIFY"
-      : "WAIT — MIXED SIGNALS";
-
-    const existing = tokens.findIndex(x => x.address === t.address);
-    if (existing >= 0) tokens.splice(existing, 1);
-    tokens.unshift(t);
-
-    selectedAddress = t.address;
-    activeCategory = "hot";
-    renderFeed();
-    updateSelectedToken();
-    input.value = "";
-  } catch (e) {
-    console.error(e);
-    alert("Search failed: " + e.message);
-  }
-}
-
-function startLiveTicker() {
-  // Refresh actual API data every 30 seconds.
-  // This is polling, not a live transaction stream.
-  setInterval(loadTokens, 30000);
-}
-
-function addNewTrackedWallet() {
-  alert(
-    "Wallet tracking is not connected yet. " +
-    "We will add real on-chain monitoring after the market feed works."
-  );
-}
-
-function runEarlyBuyerScan() {
-  alert(
-    "Winning-wallet analysis is not connected yet. " +
-    "It requires historical transaction data."
-  );
-}
-
-function connectPhantomWallet() {
-  alert("Wallet connection is disabled in this monitoring-only prototype.");
-}
-
-function executeLiveTrade() {
-  alert("Real trading is disabled. This version is monitoring-only.");
-}
-
-function quickSell() {
-  alert("Real trading is disabled. This version is monitoring-only.");
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  initLiveChart();
-  loadTokens();
-  startLiveTicker();
-});
+<body>
+<div class="max-w-[1600px] mx-auto p-3 md:p-5 space-y-4">
+<header class="panel p-4 md:p-5">
+  <div class="header-grid grid grid-cols-[1fr_minmax(280px,560px)] gap-4 items-center">
+    <div class="flex gap-3 items-center">
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black" style="background:#12382d;color:var(--green);border:1px solid #23694f">HA</div>
+      <div><div class="text-xs tracking-[.22em] muted uppercase">Solana market intelligence</div><h1 class="text-xl md:text-2xl font-black tracking-tight">HENRY <span style="color:var(--green)">ALPHA</span> TERMINAL</h1><div class="text-xs muted mt-1">Monitoring mode · no automatic trading</div></div>
+    </div>
+    <form id="search-form" class="search-row flex gap-2">
+      <input id="search-input" class="flex-1 min-w-0" placeholder="Search token name, ticker or paste mint address" autocomplete="off">
+      <button class="btn active" type="submit">SEARCH ↗</button>
+    </form>
+  </div>
+  <div class="flex flex-wrap items-center gap-2 mt-4 text-xs">
+    <span class="pill" id="connection-pill">● Connecting to market data…</span>
+    <span class="pill">Network: Solana</span><span class="pill">Alerts only</span>
+    <span class="pill muted" id="updated-at">Not yet updated</span>
+  </div>
+</header>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 stats-grid">
+  <div class="panel p-4"><div class="text-xs muted">SOL price</div><div id="sol-price" class="text-2xl font-bold mt-2">—</div><div class="text-xs muted mt-1">USD · market feed</div></div>
+  <div class="panel p-4"><div class="text-xs muted">Tokens loaded</div><div id="token-count" class="text-2xl font-bold mt-2">0</div><div class="text-xs muted mt-1">Returned by provider</div></div>
+  <div class="panel p-4"><div class="text-xs muted">Selected token liquidity</div><div id="selected-liquidity" class="text-2xl font-bold mt-2">—</div><div class="text-xs muted mt-1">USD reported by provider</div></div>
+  <div class="panel p-4"><div class="text-xs muted">Signal status</div><div id="signal-summary" class="text-lg font-bold mt-2" style="color:var(--amber)">WAIT</div><div class="text-xs muted mt-1">No guaranteed trade signals</div></div>
+</div>
+
+<main class="main-grid grid grid-cols-[minmax(300px,0.95fr)_minmax(0,1.65fr)] gap-4">
+  <section class="panel p-4">
+    <div class="flex items-center justify-between gap-3 mb-3"><div><h2 class="font-bold text-lg">Token discovery</h2><p class="text-xs muted mt-1">Market pairs surfaced by DexScreener</p></div><button id="refresh-btn" class="btn">↻ Refresh</button></div>
+    <div class="flex gap-2 mb-3"><button class="btn active category" data-cat="hot">Most volume</button><button class="btn category" data-cat="trending">Price change</button><button class="btn category" data-cat="activity">Transactions</button></div>
+    <div id="feed" class="space-y-2"><div class="muted text-sm p-3">Loading market data…</div></div>
+    <p class="text-[11px] muted mt-3">Discovery is based on the latest token profiles returned by the provider; it is not a complete feed of every new launch.</p>
+  </section>
+
+  <section class="space-y-4">
+    <div class="panel p-4 md:p-5">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div><div class="text-xs muted uppercase tracking-widest">Selected token</div><h2 id="token-title" class="text-2xl font-black mt-1">No token selected</h2><div id="token-address" class="mono text-xs muted mt-2 break-all">Search a token or select a result.</div></div>
+        <a id="pair-link" href="#" target="_blank" rel="noopener noreferrer" class="btn text-sm hidden">Open pair ↗</a>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
+        <div class="stat"><div class="text-xs muted">Price</div><div id="token-price" class="font-bold mt-1">—</div></div>
+        <div class="stat"><div class="text-xs muted">Market cap / FDV</div><div id="token-mcap" class="font-bold mt-1">—</div></div>
+        <div class="stat"><div class="text-xs muted">24h volume</div><div id="token-volume" class="font-bold mt-1">—</div></div>
+        <div class="stat"><div class="text-xs muted">24h change</div><div id="token-change" class="font-bold mt-1">—</div></div>
+      </div>
+    </div>
+    <div class="panel p-4">
+      <div class="flex items-start justify-between gap-3"><div><h2 class="font-bold text-lg">Buy / Sell pressure check</h2><p class="text-xs muted mt-1">Provider-reported transaction counts, volume and price change; not on-chain trade classification.</p></div><span id="pressure-pill" class="pill" style="color:var(--amber)">WAIT</span></div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
+        <div class="stat"><div class="text-xs muted">Buys · 1h</div><div id="buys" class="text-xl font-bold mt-1">—</div></div>
+        <div class="stat"><div class="text-xs muted">Sells · 1h</div><div id="sells" class="text-xl font-bold mt-1">—</div></div>
+        <div class="stat"><div class="text-xs muted">Buy count share</div><div id="buy-share" class="text-xl font-bold mt-1">—</div></div>
+        <div class="stat"><div class="text-xs muted">Liquidity</div><div id="liquidity" class="text-xl font-bold mt-1">—</div></div>
+      </div>
+      <div class="mt-4 h-3 rounded-full overflow-hidden flex bg-slate-800"><div id="buy-bar" style="width:50%;background:var(--green)"></div><div id="sell-bar" style="width:50%;background:var(--red)"></div></div>
+      <div id="pressure-reason" class="text-sm muted mt-3">Select a token to inspect available market statistics. No BUY/SELL recommendation is active.</div>
+      <div class="text-xs muted mt-3 border-t pt-3" style="border-color:var(--line)">Pressure acceleration, wallet risk and reliable transaction-level volume imbalance are not implemented yet. This panel will not claim they are verified.</div>
+    </div>
+    <div class="panel p-4">
+      <div class="flex flex-wrap items-center justify-between gap-2"><div><h2 class="font-bold text-lg">Market activity snapshot</h2><p class="text-xs muted mt-1">1-hour transaction counts and volume</p></div><span id="chart-note" class="text-xs muted">Waiting for data</span></div>
+      <div class="h-64 mt-3"><canvas id="activity-chart"></canvas></div>
+    </div>
+  </section>
+</main>
+<footer class="text-xs muted px-1 pb-4">Data provided by DexScreener APIs. Prices, liquidity and market statistics can be delayed or incomplete. This tool is informational only and does not guarantee performance. Never share a seed phrase or private key.</footer>
+</div>
+<script>
+const API="https://api.dexscreener.com";
+let tokens=[], selected=null, category="hot", chart=null, busy=false;
+const $=id=>document.getElementById(id);
+function fmtMoney(n){if(n===null||n===undefined||!Number.isFinite(Number(n)))return "—";n=Number(n);if(n>=1e9)return "$"+(n/1e9).toFixed(2)+"B";if(n>=1e6)return "$"+(n/1e6).toFixed(2)+"M";if(n>=1e3)return "$"+(n/1e3).toFixed(1)+"K";if(n>=1)return "$"+n.toFixed(2);if(n>0)return "$"+n.toPrecision(4);return "$0.00"}
+function fmtPrice(n){n=Number(n);if(!Number.isFinite(n)||n<=0)return "—";return n<0.01?"$"+n.toPrecision(5):"$"+n.toLocaleString(undefined,{maximumFractionDigits:4})}
+function short(s){return s?s.slice(0,6)+"…"+s.slice(-5):"Unknown"}
+async function getJSON(url){const r=await fetch(url);if(!r.ok)throw Error("Market API returned HTTP "+r.status);return r.json()}
+function setConnection(text,ok){$("connection-pill").textContent=(ok?"● ":"● ")+text;$("connection-pill").style.color=ok?"var(--green)":"var(--amber)"}
+function bestPair(pairs){return [...pairs].filter(p=>p.chainId==="solana").sort((a,b)=>Number(b.liquidity?.usd||0)-Number(a.liquidity?.usd||0))[0]}
+function toToken(p){const tx=p.txns||{};return {name:p.baseToken?.name||"Unknown",symbol:p.baseToken?.symbol||"???",address:p.baseToken?.address||"",pairAddress:p.pairAddress||"",price:Number(p.priceUsd||0),liquidity:Number(p.liquidity?.usd||0),volume:Number(p.volume?.h1||0),volume24:Number(p.volume?.h24||0),buys:Number(tx.h1?.buys||0),sells:Number(tx.h1?.sells||0),buys24:Number(tx.h24?.buys||0),sells24:Number(tx.h24?.sells||0),change:Number(p.priceChange?.h1||0),change24:Number(p.priceChange?.h24||0),mcap:Number(p.marketCap||p.fdv||0),fdv:Number(p.fdv||0),pairUrl:p.url||"",updated:Date.now()}}
+async function loadTokens(){if(busy)return;busy=true;setConnection("Loading market data…",false);try{const profiles=await getJSON(API+"/token-profiles/latest/v1");const candidates=profiles.filter(x=>x.chainId==="solana"&&x.tokenAddress).slice(0,25);const rows=await Promise.all(candidates.map(async x=>{try{const d=await getJSON(API+"/latest/dex/tokens/"+encodeURIComponent(x.tokenAddress));const p=bestPair(d.pairs||[]);return p?toToken(p):null}catch(e){return null}}));const unique=new Map();rows.filter(Boolean).forEach(t=>{if(t.address&&!unique.has(t.address))unique.set(t.address,t)});tokens=[...unique.values()];$("token-count").textContent=tokens.length;$("updated-at").textContent="Updated "+new Date().toLocaleTimeString();if(!tokens.length){setConnection("No market pairs returned",false);$("feed").innerHTML='<div class="muted text-sm p-3">No usable Solana pairs returned. Try searching a mint address.</div>';return}const sol=tokens.find(t=>t.symbol==="SOL"||t.symbol==="WSOL");if(sol)$("sol-price").textContent=fmtPrice(sol.price);else $("sol-price").textContent="Not in current feed";setConnection("Market API connected · "+tokens.length+" tokens",true);renderFeed();if(!selected||!tokens.some(t=>t.address===selected.address))choose(tokens[0]);else{const newer=tokens.find(t=>t.address===selected.address);if(newer)choose(newer)}}catch(e){setConnection("Data unavailable: "+e.message,false);$("feed").innerHTML='<div class="text-sm p-3" style="color:var(--amber)">Could not load discovery data. Use search to try a specific token. Details: '+escapeHtml(e.message)+'</div>'}finally{busy=false}}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function renderFeed(){let list=[...tokens];if(category==="hot")list.sort((a,b)=>b.volume-a.volume);else if(category==="trending")list.sort((a,b)=>b.change24-a.change24);else list.sort((a,b)=>(b.buys+b.sells)-(a.buys+a.sells));$("feed").replaceChildren();if(!list.length){$("feed").innerHTML='<div class="muted text-sm p-3">No tokens found.</div>';return}list.forEach(t=>{const b=document.createElement("button");b.className="token-row";b.innerHTML='<div class="min-w-0"><div class="font-bold">'+escapeHtml(t.symbol)+' <span class="muted font-normal text-xs">'+escapeHtml(t.name)+'</span></div><div class="mono muted text-[11px] mt-1">'+escapeHtml(short(t.address))+'</div><div class="muted text-[11px] mt-1">1h vol '+fmtMoney(t.volume)+' · '+(t.buys+t.sells)+' tx</div></div><div class="text-right"><div class="font-bold">'+fmtPrice(t.price)+'</div><div class="text-xs mt-1" style="color:'+(t.change24>=0?'var(--green)':'var(--red)')+'">'+(t.change24>0?'+':'')+t.change24.toFixed(2)+'%</div></div>';b.onclick=()=>choose(t);$("feed").appendChild(b)})}
+function choose(t){selected=t;$("token-title").textContent=t.symbol+" · "+t.name;$("token-address").textContent=t.address;$("token-price").textContent=fmtPrice(t.price);$("token-mcap").textContent=fmtMoney(t.mcap);$("token-volume").textContent=fmtMoney(t.volume24);$("token-change").textContent=(t.change24>0?"+":"")+t.change24.toFixed(2)+"%";$("token-change").style.color=t.change24>=0?"var(--green)":"var(--red)";$("selected-liquidity").textContent=fmtMoney(t.liquidity);$("liquidity").textContent=fmtMoney(t.liquidity);$("buys").textContent=t.buys.toLocaleString();$("sells").textContent=t.sells.toLocaleString();const total=t.buys+t.sells,share=total?t.buys/total*100:null;$("buy-share").textContent=share===null?"—":share.toFixed(1)+"%";$("buy-bar").style.width=(share??50)+"%";$("sell-bar").style.width=(100-(share??50))+"%";const pill=$("pressure-pill"),summary=$("signal-summary");let label="WAIT",reason="Insufficient transaction activity to assess even basic count imbalance.";if(total>=10&&t.liquidity>0){if(share>=60&&t.change>0){label="BUY PRESSURE — VERIFY";reason="Buy transaction count exceeds sell count and reported 1h price change is positive. This is only a preliminary observation, not an entry signal."}else if(share<=40&&t.change<0){label="SELL PRESSURE — CAUTION";reason="Sell transaction count exceeds buy count and reported 1h price change is negative. Review liquidity and wallet risk before making any decision."}else{label="MIXED — WAIT";reason="Transaction-count imbalance and price change do not show a clear basic alignment."}}else{reason="Not enough reported 1h transactions or liquidity for a basic check. No entry confirmation."}pill.textContent=label;summary.textContent=label.split("—")[0].trim();pill.style.color=label.startsWith("BUY")?"var(--green)":label.startsWith("SELL")?"var(--red)":"var(--amber)";summary.style.color=pill.style.color;$("pressure-reason").textContent=reason;$("chart-note").textContent="Selected pair · snapshot";if(chart){chart.data.labels=["Buys (1h)","Sells (1h)"];chart.data.datasets[0].data=[t.buys,t.sells];chart.data.datasets[1].data=[t.volume,t.volume];chart.update()}const link=$("pair-link");if(t.pairUrl){link.href=t.pairUrl;link.classList.remove("hidden")}else link.classList.add("hidden")}
+async function searchToken(query){query=(query??$("search-input").value).trim();if(!query)return;setConnection("Searching…",false);try{let data;if(query.length>=32&&/^[1-9A-HJ-NP-Za-km-z]+$/.test(query)){try{data=await getJSON(API+"/latest/dex/tokens/"+encodeURIComponent(query));if(!data.pairs?.length)throw Error("No pairs")}catch(e){data=await getJSON(API+"/latest/dex/search?q="+encodeURIComponent(query))}}else{data=await getJSON(API+"/latest/dex/search?q="+encodeURIComponent(query))}const pairs=(data.pairs||[]).filter(p=>p.chainId==="solana");if(!pairs.length){setConnection("No matching Solana pairs",false);alert("No Solana trading pairs were found for that search. A token may be too new or not yet indexed.");return}const ranked=pairs.sort((a,b)=>Number(b.liquidity?.usd||0)-Number(a.liquidity?.usd||0));const found=ranked.map(toToken);found.forEach(t=>{tokens=tokens.filter(x=>x.address!==t.address);tokens.unshift(t)});tokens=tokens.slice(0,60);renderFeed();choose(found[0]);setConnection("Search complete · "+found.length+" matching pairs",true);$("search-input").value=""}catch(e){setConnection("Search failed",false);alert("Search could not be completed: "+e.message)}}
+function initChart(){const ctx=$("activity-chart").getContext("2d");chart=new Chart(ctx,{type:"bar",data:{labels:["Buys (1h)","Sells (1h)"],datasets:[{label:"Transactions",data:[0,0],backgroundColor:["#31e6a0","#ff5d72"],borderRadius:6},{label:"Volume USD (1h)",data:[0,0],hidden:true,backgroundColor:["#31e6a0","#ff5d72"]}]},options:{responsive:true,maintainAspectRatio:false,animation:false,scales:{x:{ticks:{color:"#9aabba"},grid:{color:"#1d2936"}},y:{beginAtZero:true,ticks:{color:"#9aabba"},grid:{color:"#1d2936"}}},plugins:{legend:{display:false}}}})}
+$("search-form").addEventListener("submit",e=>{e.preventDefault();searchToken()});$("refresh-btn").addEventListener("click",loadTokens);document.querySelectorAll(".category").forEach(b=>b.addEventListener("click",()=>{category=b.dataset.cat;document.querySelectorAll(".category").forEach(x=>x.classList.toggle("active",x===b));renderFeed()}));initChart();loadTokens();setInterval(loadTokens,60000);
 </script>
-
+</body>
+</html>
