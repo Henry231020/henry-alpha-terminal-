@@ -24,7 +24,9 @@ small{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin:16p
 <h1>HENRY · Token Investigator</h1>
 <p>Scan one Solana token and view early-buyer and trader data here. The scan should not send you to another website.</p>
 <section class="panel">
-<label for="mint">Solana token address</label>
+<label for="apiKey">Noesis API key (required)</label>
+<input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Paste API key from noesisapi.dev/keys">
+<label for="mint" style="margin-top:12px">Solana token address</label>
 <input id="mint" autocomplete="off" spellcheck="false" value="FmuciqKXRRnKqhi7BNin5mYH6fm3oTrfVB5A5Fyrpump" placeholder="Paste token mint address">
 <button id="scan" type="button">SCAN TOKEN</button>
 <div id="status" role="status">Ready to scan.</div>
@@ -46,7 +48,7 @@ small{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin:16p
 <h2>Wallets ranked by profit</h2><div id="traderNote" class="empty">Run a scan to load available trader data.</div>
 <div class="tablewrap"><table id="traderTable" class="hidden"><thead><tr><th>Wallet</th><th>Realised profit</th><th>Unrealised profit</th><th>Total profit</th><th>Tags</th></tr></thead><tbody id="traderRows"></tbody></table></div>
 </section>
-<small>Data is fetched from a public third-party Solana analytics API and may be unavailable, incomplete, delayed, or rate-limited. A wallet holding or selling tokens is not by itself proof of profit. No wallet connection or automatic trading is used.</small>
+<small>Data is fetched from Noesis using the API key you enter. The page does not save the key; it is sent from your browser with each request. Early-buyer analysis may require a paid API plan. A wallet holding or selling tokens is not by itself proof of profit. No wallet connection or automatic trading is used.</small>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -55,14 +57,14 @@ function validMint(v){return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v)}
 function fmt(n,d=4){if(n===null||n===undefined||n==="")return "—";const x=Number(n);return Number.isFinite(x)?x.toLocaleString(undefined,{maximumFractionDigits:d}):String(n)}
 function usd(n){if(n===null||n===undefined||n==="")return "—";const x=Number(n);return Number.isFinite(x)?x.toLocaleString(undefined,{style:"currency",currency:"USD",maximumFractionDigits:2}):String(n)}
 function shortAddr(a){return a&&a.length>18?a.slice(0,7)+"…"+a.slice(-7):(a||"—")}
-async function get(path){const r=await fetch(API+path,{headers:{Accept:"application/json"}});let j;try{j=await r.json()}catch{throw new Error("Analytics service returned an unreadable response.")}if(!r.ok)throw new Error(j.error||("Analytics service returned HTTP "+r.status));if(j.error)throw new Error(j.error);return j}
+async function get(path){const key=$("apiKey").value.trim();if(!key)throw new Error("Enter your Noesis API key first (create one at noesisapi.dev/keys).");const r=await fetch(API+path,{headers:{Accept:"application/json","X-API-Key":key}});let j;try{j=await r.json()}catch{throw new Error("Analytics service returned an unreadable response.")}if(!r.ok)throw new Error(j.error||("Analytics service returned HTTP "+r.status));if(j.error)throw new Error(j.error);return j}
 function arr(j,keys){for(const k of keys){if(Array.isArray(j?.[k]))return j[k]}return []}
 function walletLink(a){return '<a href="https://solscan.io/account/'+encodeURIComponent(a)+'" target="_blank" rel="noopener noreferrer">'+shortAddr(a)+'</a>'}
 function txTime(v){if(!v)return "—";const d=new Date(Number(v)*1000);return Number.isNaN(d.getTime())?"—":d.toLocaleString()}
 async function scan(){
  const mint=$("mint").value.trim();
  if(!validMint(mint)){$("status").className="error";$("status").textContent="Please enter a valid Solana token address.";return}
- $("scan").disabled=true;$("scan").textContent="SCANNING…";$("status").className="";$("status").textContent="Fetching token, early-buyer and trader data. This can take a moment.";
+ $("scan").disabled=true;$("scan").textContent="SCANNING…";$("status").className="";$("status").textContent="Connecting to Noesis and fetching token, early-buyer and trader data. Your API key is sent with these requests and is not saved by this page.";
  $("summary").classList.add("hidden");$("earlyTable").classList.add("hidden");$("traderTable").classList.add("hidden");
  $("earlyNote").textContent="Loading early buyers…";$("traderNote").textContent="Loading trader rankings…";
  const jobs=await Promise.allSettled([
