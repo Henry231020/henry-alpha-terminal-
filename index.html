@@ -5,56 +5,93 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>HENRY Token Investigator</title>
 <style>
-:root{color-scheme:dark;--bg:#080b10;--panel:#101620;--line:#263444;--muted:#9aabba;--green:#31e6a0}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:#edf4fb;font:16px system-ui,-apple-system,Segoe UI,sans-serif;display:grid;place-items:center;padding:18px}
-main{width:min(100%,620px);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px}
-h1{font-size:23px;margin:0 0 8px}p{color:var(--muted);line-height:1.5;margin:0 0 18px}
-label{display:block;font-size:13px;color:var(--muted);margin:0 0 8px}
+:root{color-scheme:dark;--bg:#080b10;--panel:#101620;--line:#263444;--muted:#9aabba;--green:#31e6a0;--red:#ff8f8f}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:#edf4fb;font:15px system-ui,-apple-system,Segoe UI,sans-serif;padding:16px}
+main{width:min(100%,1000px);margin:0 auto}h1{font-size:23px;margin:0 0 6px}p{color:var(--muted);line-height:1.5;margin:0 0 16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:8px}
 input{width:100%;padding:14px;border:1px solid var(--line);border-radius:10px;background:#080d13;color:white;font:14px ui-monospace,monospace}
 button{width:100%;padding:14px;border:1px solid #23694f;border-radius:10px;background:#12382d;color:var(--green);font-weight:750;font-size:15px;margin-top:10px}
-.links{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-a{display:block;text-align:center;text-decoration:none;color:#dce7f3;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px}
-#status{font-size:12px;margin-top:14px;color:var(--muted)}
-small{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin-top:16px}
-@media(max-width:460px){main{padding:16px}.links{grid-template-columns:1fr}}
+#status{font-size:13px;margin-top:12px;color:var(--muted)}#status.error{color:var(--red)}
+.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.metric{background:#080d13;border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}.metric b{display:block;font-size:17px;overflow-wrap:anywhere}.metric span{font-size:12px;color:var(--muted)}
+h2{font-size:17px;margin:0 0 12px}.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:680px;font-size:13px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-weight:600}td a{color:var(--green);text-decoration:none;overflow-wrap:anywhere}.empty{color:var(--muted);font-size:13px}.hidden{display:none}
+small{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin:16px 0}
+@media(max-width:500px){body{padding:10px}.panel{padding:12px}.summary{grid-template-columns:1fr 1fr}h1{font-size:21px}}
 </style>
 </head>
 <body>
 <main>
 <h1>HENRY · Token Investigator</h1>
-<p>Enter one Solana token to inspect its earliest buyers, entry timing, amount bought, whether wallets still hold or exited, and evidence of repeat winners.</p>
+<p>Scan one Solana token and view early-buyer and trader data here. The scan should not send you to another website.</p>
+<section class="panel">
 <label for="mint">Solana token address</label>
 <input id="mint" autocomplete="off" spellcheck="false" value="FmuciqKXRRnKqhi7BNin5mYH6fm3oTrfVB5A5Fyrpump" placeholder="Paste token mint address">
 <button id="scan" type="button">SCAN TOKEN</button>
-<div class="links">
-<a id="first" href="https://solbundle.app/tools/first-buyers-scanner" target="_blank" rel="noopener noreferrer">First buyers · amounts · hold status ↗</a>
-<a id="report" href="https://www.pumppill.org/" target="_blank" rel="noopener noreferrer">Wallet / launch report ↗</a>
-<a id="chain" href="https://solscan.io/" target="_blank" rel="noopener noreferrer">Verify transactions ↗</a>
-<a id="market" href="https://dexscreener.com/solana/" target="_blank" rel="noopener noreferrer">Token market ↗</a>
-</div>
-<div id="status">Ready. Scan opens public analysis pages for the address you enter.</div>
-<small>Uses public websites only. First-buyer tools can show entry order and holdings, but holdings alone do not prove profit. Realised profit requires matching buys and sells and accounting for fees. No wallet connection, paid API, or automatic trading.</small>
+<div id="status" role="status">Ready to scan.</div>
+</section>
+<section id="summary" class="panel hidden">
+<h2>Token overview</h2><div class="summary">
+<div class="metric"><span>Token</span><b id="tokenName">—</b></div>
+<div class="metric"><span>Price (USD)</span><b id="price">—</b></div>
+<div class="metric"><span>Liquidity (USD)</span><b id="liquidity">—</b></div>
+<div class="metric"><span>Market cap</span><b id="mcap">—</b></div>
+<div class="metric"><span>24h volume</span><b id="volume">—</b></div>
+<div class="metric"><span>Holders</span><b id="holders">—</b></div>
+</div></section>
+<section class="panel">
+<h2>Earliest buyers</h2><div id="earlyNote" class="empty">Run a scan to load available early-buyer data.</div>
+<div class="tablewrap"><table id="earlyTable" class="hidden"><thead><tr><th># / Wallet</th><th>First buy time</th><th>SOL spent</th><th>Tokens bought</th><th>Current status</th></tr></thead><tbody id="earlyRows"></tbody></table></div>
+</section>
+<section class="panel">
+<h2>Wallets ranked by profit</h2><div id="traderNote" class="empty">Run a scan to load available trader data.</div>
+<div class="tablewrap"><table id="traderTable" class="hidden"><thead><tr><th>Wallet</th><th>Realised profit</th><th>Unrealised profit</th><th>Total profit</th><th>Tags</th></tr></thead><tbody id="traderRows"></tbody></table></div>
+</section>
+<small>Data is fetched from a public third-party Solana analytics API and may be unavailable, incomplete, delayed, or rate-limited. A wallet holding or selling tokens is not by itself proof of profit. No wallet connection or automatic trading is used.</small>
 </main>
 <script>
 const $=id=>document.getElementById(id);
+const API="https://noesisapi.dev/api/v1";
 function validMint(v){return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v)}
-function updateLinks(){
+function fmt(n,d=4){if(n===null||n===undefined||n==="")return "—";const x=Number(n);return Number.isFinite(x)?x.toLocaleString(undefined,{maximumFractionDigits:d}):String(n)}
+function usd(n){if(n===null||n===undefined||n==="")return "—";const x=Number(n);return Number.isFinite(x)?x.toLocaleString(undefined,{style:"currency",currency:"USD",maximumFractionDigits:2}):String(n)}
+function shortAddr(a){return a&&a.length>18?a.slice(0,7)+"…"+a.slice(-7):(a||"—")}
+async function get(path){const r=await fetch(API+path,{headers:{Accept:"application/json"}});let j;try{j=await r.json()}catch{throw new Error("Analytics service returned an unreadable response.")}if(!r.ok)throw new Error(j.error||("Analytics service returned HTTP "+r.status));if(j.error)throw new Error(j.error);return j}
+function arr(j,keys){for(const k of keys){if(Array.isArray(j?.[k]))return j[k]}return []}
+function walletLink(a){return '<a href="https://solscan.io/account/'+encodeURIComponent(a)+'" target="_blank" rel="noopener noreferrer">'+shortAddr(a)+'</a>'}
+function txTime(v){if(!v)return "—";const d=new Date(Number(v)*1000);return Number.isNaN(d.getTime())?"—":d.toLocaleString()}
+async function scan(){
  const mint=$("mint").value.trim();
- $("first").href="https://solbundle.app/tools/first-buyers-scanner";
- $("report").href="https://www.pumppill.org/scan?ca="+encodeURIComponent(mint);
- $("chain").href="https://solscan.io/token/"+encodeURIComponent(mint);
- $("market").href="https://dexscreener.com/solana/"+encodeURIComponent(mint);
+ if(!validMint(mint)){$("status").className="error";$("status").textContent="Please enter a valid Solana token address.";return}
+ $("scan").disabled=true;$("scan").textContent="SCANNING…";$("status").className="";$("status").textContent="Fetching token, early-buyer and trader data. This can take a moment.";
+ $("summary").classList.add("hidden");$("earlyTable").classList.add("hidden");$("traderTable").classList.add("hidden");
+ $("earlyNote").textContent="Loading early buyers…";$("traderNote").textContent="Loading trader rankings…";
+ const jobs=await Promise.allSettled([
+  get("/token/"+encodeURIComponent(mint)+"/preview"),
+  get("/token/"+encodeURIComponent(mint)+"/early-buyers?hours=1"),
+  get("/token/"+encodeURIComponent(mint)+"/best-traders")
+ ]);
+ let good=0, problems=[];
+ if(jobs[0].status==="fulfilled"){
+  good++;const j=jobs[0].value,t=j.token||j.data?.token||j;
+  $("tokenName").textContent=[t.name,t.symbol?"("+t.symbol+")":""].filter(Boolean).join(" ")||"Unknown";
+  $("price").textContent=usd(t.price_usd);$("liquidity").textContent=usd(t.liquidity);$("mcap").textContent=usd(t.market_cap);$("volume").textContent=usd(t.volume_24h);$("holders").textContent=fmt(t.holder_count,0);$("summary").classList.remove("hidden");
+ }else{problems.push("Token overview: "+jobs[0].reason.message)}
+ if(jobs[1].status==="fulfilled"){
+  good++;const j=jobs[1].value,rows=arr(j,["buyers","early_buyers","data"]);
+  $("earlyRows").innerHTML=rows.map((b,i)=>'<tr><td>'+(i+1)+". "+walletLink(b.address||b.wallet||b.owner)+'</td><td>'+txTime(b.timestamp||b.block_time)+'</td><td>'+fmt(b.sol_spent??b.solSpent)+'</td><td>'+fmt(b.token_amount??b.amount??b.tokens_bought)+'</td><td>'+String(b.position_status||b.status||b.current_status||(b.current_balance!==undefined?("Balance "+fmt(b.current_balance)):"—")).replace(/[<>]/g,"")+'</td></tr>').join("");
+  $("earlyNote").textContent=rows.length?rows.length+" early buyers returned (first hour).":"The service returned no early-buyer rows for this token.";if(rows.length)$("earlyTable").classList.remove("hidden");
+ }else{$("earlyNote").textContent="Early-buyer data unavailable: "+jobs[1].reason.message;problems.push("Early buyers unavailable")}
+ if(jobs[2].status==="fulfilled"){
+  good++;const j=jobs[2].value,rows=arr(j,["traders","top_traders","best_traders","data"]);
+  $("traderRows").innerHTML=rows.map(b=>'<tr><td>'+walletLink(b.address||b.wallet)+'</td><td>'+usd(b.realized_profit??b.realised_profit)+'</td><td>'+usd(b.unrealized_profit??b.unrealised_profit)+'</td><td>'+usd(b.total_profit??b.profit)+'</td><td>'+String((b.tags||[]).join(", ")||"—").replace(/[<>]/g,"")+'</td></tr>').join("");
+  $("traderNote").textContent=rows.length?rows.length+" wallets returned, ranked by the provider.":"The service returned no trader-ranking rows.";if(rows.length)$("traderTable").classList.remove("hidden");
+ }else{$("traderNote").textContent="Trader ranking unavailable: "+jobs[2].reason.message;problems.push("Trader ranking unavailable")}
+ $("status").textContent=good===3?"Scan complete. Results are displayed below.":good>0?"Partial results loaded. "+problems.join(" · "):"Scan failed. "+problems.join(" · ");
+ if(good===0)$("status").className="error";
+ $("scan").disabled=false;$("scan").textContent="SCAN TOKEN";
 }
-$("scan").addEventListener("click",()=>{
- const mint=$("mint").value.trim();
- if(!validMint(mint)){$("status").textContent="Please paste a valid Solana token address.";return}
- updateLinks();
- $("status").textContent="Opening public analysis for this token. The First Buyers page may ask you to paste the same address there.";
- window.open($("report").href,"_blank","noopener,noreferrer");
- window.open($("first").href,"_blank","noopener,noreferrer");
-});
-$("mint").addEventListener("input",updateLinks);
-updateLinks();
+$("scan").addEventListener("click",scan);
+$("mint").addEventListener("keydown",e=>{if(e.key==="Enter")scan()});
 </script>
 </body>
 </html>
