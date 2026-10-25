@@ -52,12 +52,12 @@ small{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin:16p
 </main>
 <script>
 const $=id=>document.getElementById(id);
-const API="https://noesisapi.dev/api/v1";
+
 function validMint(v){return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v)}
 function fmt(n,d=4){if(n===null||n===undefined||n==="")return "—";const x=Number(n);return Number.isFinite(x)?x.toLocaleString(undefined,{maximumFractionDigits:d}):String(n)}
 function usd(n){if(n===null||n===undefined||n==="")return "—";const x=Number(n);return Number.isFinite(x)?x.toLocaleString(undefined,{style:"currency",currency:"USD",maximumFractionDigits:2}):String(n)}
 function shortAddr(a){return a&&a.length>18?a.slice(0,7)+"…"+a.slice(-7):(a||"—")}
-async function get(path){const key=$("apiKey").value.trim();if(!key)throw new Error("Enter your Noesis API key first (create one at noesisapi.dev/keys).");const r=await fetch(API+path,{headers:{Accept:"application/json","X-API-Key":key}});let j;try{j=await r.json()}catch{throw new Error("Analytics service returned an unreadable response.")}if(!r.ok)throw new Error(j.error||("Analytics service returned HTTP "+r.status));if(j.error)throw new Error(j.error);return j}
+
 function arr(j,keys){for(const k of keys){if(Array.isArray(j?.[k]))return j[k]}return []}
 function walletLink(a){return '<a href="https://solscan.io/account/'+encodeURIComponent(a)+'" target="_blank" rel="noopener noreferrer">'+shortAddr(a)+'</a>'}
 function txTime(v){if(!v)return "—";const d=new Date(Number(v)*1000);return Number.isNaN(d.getTime())?"—":d.toLocaleString()}
@@ -67,27 +67,34 @@ async function scan(){
  $("scan").disabled=true;$("scan").textContent="SCANNING…";$("status").className="";$("status").textContent="Connecting to Noesis and fetching token, early-buyer and trader data. Your API key is sent with these requests and is not saved by this page.";
  $("summary").classList.add("hidden");$("earlyTable").classList.add("hidden");$("traderTable").classList.add("hidden");
  $("earlyNote").textContent="Loading early buyers…";$("traderNote").textContent="Loading trader rankings…";
- const jobs=await Promise.allSettled([
-  get("/token/"+encodeURIComponent(mint)+"/preview"),
-  get("/token/"+encodeURIComponent(mint)+"/early-buyers?hours=1"),
-  get("/token/"+encodeURIComponent(mint)+"/best-traders")
- ]);
+ let data;
+ try {
+  const response=await fetch("/api/scan",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify({mint,apiKey:$("apiKey").value.trim()})});
+  data=await response.json();
+  if(!response.ok)throw new Error(data.error||("Scanner returned HTTP "+response.status)+(data.details?" · "+JSON.stringify(data.details):""));
+ } catch(e) {
+  $("earlyNote").textContent="Scan could not reach the HENRY server: "+e.message;
+  $("traderNote").textContent="No results loaded.";
+  $("status").className="error";
+  $("status").textContent="Scan failed: "+e.message;
+  $("scan").disabled=false;$("scan").textContent="SCAN TOKEN";return;
+ }
  let good=0, problems=[];
- if(jobs[0].status==="fulfilled"){
-  good++;const j=jobs[0].value,t=j.token||j.data?.token||j;
+ if(data.preview){
+  good++;const j=data.preview,t=j.token||j.data?.token||j;
   $("tokenName").textContent=[t.name,t.symbol?"("+t.symbol+")":""].filter(Boolean).join(" ")||"Unknown";
   $("price").textContent=usd(t.price_usd);$("liquidity").textContent=usd(t.liquidity);$("mcap").textContent=usd(t.market_cap);$("volume").textContent=usd(t.volume_24h);$("holders").textContent=fmt(t.holder_count,0);$("summary").classList.remove("hidden");
- }else{problems.push("Token overview: "+jobs[0].reason.message)}
- if(jobs[1].status==="fulfilled"){
-  good++;const j=jobs[1].value,rows=arr(j,["buyers","early_buyers","data"]);
+ }else{problems.push("Token overview: "+(data.previewError||"no data"))}
+ if(data.earlyBuyers){
+  good++;const j=data.earlyBuyers,rows=arr(j,["buyers","early_buyers","data"]);
   $("earlyRows").innerHTML=rows.map((b,i)=>'<tr><td>'+(i+1)+". "+walletLink(b.address||b.wallet||b.owner)+'</td><td>'+txTime(b.timestamp||b.block_time)+'</td><td>'+fmt(b.sol_spent??b.solSpent)+'</td><td>'+fmt(b.token_amount??b.amount??b.tokens_bought)+'</td><td>'+String(b.position_status||b.status||b.current_status||(b.current_balance!==undefined?("Balance "+fmt(b.current_balance)):"—")).replace(/[<>]/g,"")+'</td></tr>').join("");
   $("earlyNote").textContent=rows.length?rows.length+" early buyers returned (first hour).":"The service returned no early-buyer rows for this token.";if(rows.length)$("earlyTable").classList.remove("hidden");
- }else{$("earlyNote").textContent="Early-buyer data unavailable: "+jobs[1].reason.message;problems.push("Early buyers unavailable")}
- if(jobs[2].status==="fulfilled"){
-  good++;const j=jobs[2].value,rows=arr(j,["traders","top_traders","best_traders","data"]);
+ }else{$("earlyNote").textContent="Early-buyer data unavailable: "+(data.earlyBuyersError||"no data");problems.push("Early buyers unavailable")}
+ if(data.bestTraders){
+  good++;const j=data.bestTraders,rows=arr(j,["traders","top_traders","best_traders","data"]);
   $("traderRows").innerHTML=rows.map(b=>'<tr><td>'+walletLink(b.address||b.wallet)+'</td><td>'+usd(b.realized_profit??b.realised_profit)+'</td><td>'+usd(b.unrealized_profit??b.unrealised_profit)+'</td><td>'+usd(b.total_profit??b.profit)+'</td><td>'+String((b.tags||[]).join(", ")||"—").replace(/[<>]/g,"")+'</td></tr>').join("");
   $("traderNote").textContent=rows.length?rows.length+" wallets returned, ranked by the provider.":"The service returned no trader-ranking rows.";if(rows.length)$("traderTable").classList.remove("hidden");
- }else{$("traderNote").textContent="Trader ranking unavailable: "+jobs[2].reason.message;problems.push("Trader ranking unavailable")}
+ }else{$("traderNote").textContent="Trader ranking unavailable: "+(data.bestTradersError||"no data");problems.push("Trader ranking unavailable")}
  $("status").textContent=good===3?"Scan complete. Results are displayed below.":good>0?"Partial results loaded. "+problems.join(" · "):"Scan failed. "+problems.join(" · ");
  if(good===0)$("status").className="error";
  $("scan").disabled=false;$("scan").textContent="SCAN TOKEN";
