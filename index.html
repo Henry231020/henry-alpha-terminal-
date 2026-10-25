@@ -1,135 +1,60 @@
-
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HENRY ALPHA TERMINAL</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>HENRY Token Investigator</title>
 <style>
-:root{color-scheme:dark;--bg:#080b10;--panel:#101620;--line:#202b38;--muted:#8c9bad;--green:#31e6a0;--red:#ff5d72;--amber:#ffc857}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#111e2b 0,#080b10 48%);color:#edf4fb;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
-.panel{background:linear-gradient(145deg,rgba(17,24,35,.97),rgba(12,17,25,.97));border:1px solid var(--line);border-radius:16px}
-.muted{color:var(--muted)}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-.btn{border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:#141d29;color:#dce7f3;font-weight:700}
-.btn:hover{border-color:#3d5a70}.btn.active{background:#12382d;color:var(--green);border-color:#23694f}
-input{background:#080d13;border:1px solid #293747;border-radius:10px;color:#f4f8fc;padding:12px;outline:none}
-input:focus{border-color:var(--green)}.stat{padding:14px;border-radius:12px;background:#0b1119;border:1px solid #1d2936}
-.pill{border:1px solid #2a3948;border-radius:999px;padding:4px 8px;font-size:11px}
-.token-row{width:100%;text-align:left;border:1px solid #1c2936;border-radius:12px;padding:12px;background:#0c121a;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
-.token-row:hover{border-color:#3a5d70;background:#101b27}
-@media(max-width:900px){.main-grid{grid-template-columns:1fr!important}.header-grid{grid-template-columns:1fr!important}.search-row{width:100%}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+:root{color-scheme:dark;--bg:#080b10;--panel:#101620;--line:#263444;--muted:#9aabba;--green:#31e6a0}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:#edf4fb;font:16px system-ui,-apple-system,Segoe UI,sans-serif;display:grid;place-items:center;padding:18px}
+main{width:min(100%,620px);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px}
+h1{font-size:23px;margin:0 0 8px}p{color:var(--muted);line-height:1.5;margin:0 0 18px}
+label{display:block;font-size:13px;color:var(--muted);margin:0 0 8px}
+input{width:100%;padding:14px;border:1px solid var(--line);border-radius:10px;background:#080d13;color:white;font:14px ui-monospace,monospace}
+button{width:100%;padding:14px;border:1px solid #23694f;border-radius:10px;background:#12382d;color:var(--green);font-weight:750;font-size:15px;margin-top:10px}
+.links{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+a{display:block;text-align:center;text-decoration:none;color:#dce7f3;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px}
+#status{font-size:12px;margin-top:14px;color:var(--muted)}
+small{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin-top:16px}
+@media(max-width:460px){main{padding:16px}.links{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="max-w-[1600px] mx-auto p-3 md:p-5 space-y-4">
-<header class="panel p-4 md:p-5">
-  <div class="header-grid grid grid-cols-[1fr_minmax(280px,560px)] gap-4 items-center">
-    <div class="flex gap-3 items-center">
-      <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black" style="background:#12382d;color:var(--green);border:1px solid #23694f">HA</div>
-      <div><div class="text-xs tracking-[.22em] muted uppercase">Solana market intelligence</div><h1 class="text-xl md:text-2xl font-black tracking-tight">HENRY <span style="color:var(--green)">ALPHA</span> TERMINAL</h1><div class="text-xs muted mt-1">Monitoring mode · no automatic trading</div></div>
-    </div>
-    <form id="search-form" class="search-row flex gap-2">
-      <input id="search-input" class="flex-1 min-w-0" placeholder="Search token name, ticker or paste mint address" autocomplete="off">
-      <button class="btn active" type="submit">SEARCH ↗</button>
-    </form>
-  </div>
-  <div class="flex flex-wrap items-center gap-2 mt-4 text-xs">
-    <span class="pill" id="connection-pill">● Connecting to market data…</span>
-    <span class="pill">Network: Solana</span><span class="pill">Alerts only</span>
-    <span class="pill muted" id="updated-at">Not yet updated</span>
-  </div>
-</header>
-
-<div class="grid grid-cols-2 md:grid-cols-4 gap-3 stats-grid">
-  <div class="panel p-4"><div class="text-xs muted">SOL price</div><div id="sol-price" class="text-2xl font-bold mt-2">—</div><div class="text-xs muted mt-1">USD · market feed</div></div>
-  <div class="panel p-4"><div class="text-xs muted">Tokens loaded</div><div id="token-count" class="text-2xl font-bold mt-2">0</div><div class="text-xs muted mt-1">Returned by provider</div></div>
-  <div class="panel p-4"><div class="text-xs muted">Selected token liquidity</div><div id="selected-liquidity" class="text-2xl font-bold mt-2">—</div><div class="text-xs muted mt-1">USD reported by provider</div></div>
-  <div class="panel p-4"><div class="text-xs muted">Signal status</div><div id="signal-summary" class="text-lg font-bold mt-2" style="color:var(--amber)">WAIT</div><div class="text-xs muted mt-1">No guaranteed trade signals</div></div>
+<main>
+<h1>HENRY · Token Investigator</h1>
+<p>Enter one Solana token to inspect its earliest buyers, entry timing, amount bought, whether wallets still hold or exited, and evidence of repeat winners.</p>
+<label for="mint">Solana token address</label>
+<input id="mint" autocomplete="off" spellcheck="false" value="FmuciqKXRRnKqhi7BNin5mYH6fm3oTrfVB5A5Fyrpump" placeholder="Paste token mint address">
+<button id="scan" type="button">SCAN TOKEN</button>
+<div class="links">
+<a id="first" href="https://solbundle.app/tools/first-buyers-scanner" target="_blank" rel="noopener noreferrer">First buyers · amounts · hold status ↗</a>
+<a id="report" href="https://www.pumppill.org/" target="_blank" rel="noopener noreferrer">Wallet / launch report ↗</a>
+<a id="chain" href="https://solscan.io/" target="_blank" rel="noopener noreferrer">Verify transactions ↗</a>
+<a id="market" href="https://dexscreener.com/solana/" target="_blank" rel="noopener noreferrer">Token market ↗</a>
 </div>
-
-<main class="main-grid grid grid-cols-[minmax(300px,0.95fr)_minmax(0,1.65fr)] gap-4">
-  <section class="panel p-4">
-    <div class="flex items-center justify-between gap-3 mb-3"><div><h2 class="font-bold text-lg">Token discovery</h2><p class="text-xs muted mt-1">Market pairs surfaced by DexScreener</p></div><button id="refresh-btn" class="btn">↻ Refresh</button></div>
-    <div class="flex gap-2 mb-3"><button class="btn active category" data-cat="hot">Most volume</button><button class="btn category" data-cat="trending">Price change</button><button class="btn category" data-cat="activity">Transactions</button></div>
-    <div id="feed" class="space-y-2"><div class="muted text-sm p-3">Loading market data…</div></div>
-    <p class="text-[11px] muted mt-3">Discovery is based on the latest token profiles returned by the provider; it is not a complete feed of every new launch.</p>
-  </section>
-
-  <section class="space-y-4">
-    <div class="panel p-4 md:p-5">
-      <div class="flex flex-wrap items-start justify-between gap-3">
-        <div><div class="text-xs muted uppercase tracking-widest">Selected token</div><h2 id="token-title" class="text-2xl font-black mt-1">No token selected</h2><div id="token-address" class="mono text-xs muted mt-2 break-all">Search a token or select a result.</div></div>
-        <a id="pair-link" href="#" target="_blank" rel="noopener noreferrer" class="btn text-sm hidden">Open pair ↗</a>
-      </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
-        <div class="stat"><div class="text-xs muted">Price</div><div id="token-price" class="font-bold mt-1">—</div></div>
-        <div class="stat"><div class="text-xs muted">Market cap / FDV</div><div id="token-mcap" class="font-bold mt-1">—</div></div>
-        <div class="stat"><div class="text-xs muted">24h volume</div><div id="token-volume" class="font-bold mt-1">—</div></div>
-        <div class="stat"><div class="text-xs muted">24h change</div><div id="token-change" class="font-bold mt-1">—</div></div>
-      </div>
-    </div>
-    <div class="panel p-4">
-      <div class="flex items-start justify-between gap-3"><div><h2 class="font-bold text-lg">Buy / Sell pressure check</h2><p class="text-xs muted mt-1">Provider-reported transaction counts, volume and price change; not on-chain trade classification.</p></div><span id="pressure-pill" class="pill" style="color:var(--amber)">WAIT</span></div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
-        <div class="stat"><div class="text-xs muted">Buys · 1h</div><div id="buys" class="text-xl font-bold mt-1">—</div></div>
-        <div class="stat"><div class="text-xs muted">Sells · 1h</div><div id="sells" class="text-xl font-bold mt-1">—</div></div>
-        <div class="stat"><div class="text-xs muted">Buy count share</div><div id="buy-share" class="text-xl font-bold mt-1">—</div></div>
-        <div class="stat"><div class="text-xs muted">Liquidity</div><div id="liquidity" class="text-xl font-bold mt-1">—</div></div>
-      </div>
-      <div class="mt-4 h-3 rounded-full overflow-hidden flex bg-slate-800"><div id="buy-bar" style="width:50%;background:var(--green)"></div><div id="sell-bar" style="width:50%;background:var(--red)"></div></div>
-      <div id="pressure-reason" class="text-sm muted mt-3">Select a token to inspect available market statistics. No BUY/SELL recommendation is active.</div>
-      <div class="text-xs muted mt-3 border-t pt-3" style="border-color:var(--line)">Pressure acceleration, wallet risk and reliable transaction-level volume imbalance are not implemented yet. This panel will not claim they are verified.</div>
-    </div>
-    <div class="panel p-4">
-      <div class="flex flex-wrap items-center justify-between gap-2"><div><h2 class="font-bold text-lg">Market activity snapshot</h2><p class="text-xs muted mt-1">1-hour transaction counts and volume</p></div><span id="chart-note" class="text-xs muted">Waiting for data</span></div>
-      <div class="h-64 mt-3"><canvas id="activity-chart"></canvas></div>
-    </div>
-  </section>
+<div id="status">Ready. Scan opens public analysis pages for the address you enter.</div>
+<small>Uses public websites only. First-buyer tools can show entry order and holdings, but holdings alone do not prove profit. Realised profit requires matching buys and sells and accounting for fees. No wallet connection, paid API, or automatic trading.</small>
 </main>
-
-<section id="wallet-investigator" class="panel p-4 md:p-5 space-y-3">
-  <div><div class="text-xs muted uppercase tracking-widest">Public-source research</div><h2 class="font-bold text-lg mt-1">Token Investigator</h2><p class="text-sm muted mt-1">Paste a token address once, then open public transaction, market and early-buyer research sources. These links do not pretend to calculate wallet profits automatically.</p></div>
-  <label for="investigator-mint" class="text-xs muted">Solana token address</label>
-  <input id="investigator-mint" class="w-full mono" value="FmuciqKXRRnKqhi7BNin5mYH6fm3oTrfVB5A5Fyrpump" autocomplete="off" spellcheck="false">
-  <div class="flex flex-wrap gap-2">
-    <button id="inv-solscan" class="btn active" type="button">Transactions / holders ↗</button>
-    <button id="inv-dex" class="btn" type="button">Market data ↗</button>
-    <button id="inv-pumppill" class="btn" type="button">Public token report ↗</button>
-    <button id="inv-solbundle" class="btn" type="button">First buyers scanner ↗</button>
-  </div>
-  <div id="investigator-status" class="text-xs muted">Ready. The first-buyer scanner opens separately; paste the same address there if it does not prefill automatically.</div>
-</section>
-
-<footer class="text-xs muted px-1 pb-4">Data provided by DexScreener APIs. Prices, liquidity and market statistics can be delayed or incomplete. This tool is informational only and does not guarantee performance. Never share a seed phrase or private key.</footer>
-</div>
 <script>
-const API="https://api.dexscreener.com";
-let tokens=[], selected=null, category="hot", chart=null, busy=false;
 const $=id=>document.getElementById(id);
-function fmtMoney(n){if(n===null||n===undefined||!Number.isFinite(Number(n)))return "—";n=Number(n);if(n>=1e9)return "$"+(n/1e9).toFixed(2)+"B";if(n>=1e6)return "$"+(n/1e6).toFixed(2)+"M";if(n>=1e3)return "$"+(n/1e3).toFixed(1)+"K";if(n>=1)return "$"+n.toFixed(2);if(n>0)return "$"+n.toPrecision(4);return "$0.00"}
-function fmtPrice(n){n=Number(n);if(!Number.isFinite(n)||n<=0)return "—";return n<0.01?"$"+n.toPrecision(5):"$"+n.toLocaleString(undefined,{maximumFractionDigits:4})}
-function short(s){return s?s.slice(0,6)+"…"+s.slice(-5):"Unknown"}
-async function getJSON(url){const r=await fetch(url);if(!r.ok)throw Error("Market API returned HTTP "+r.status);return r.json()}
-function setConnection(text,ok){$("connection-pill").textContent=(ok?"● ":"● ")+text;$("connection-pill").style.color=ok?"var(--green)":"var(--amber)"}
-function bestPair(pairs){return [...pairs].filter(p=>p.chainId==="solana").sort((a,b)=>Number(b.liquidity?.usd||0)-Number(a.liquidity?.usd||0))[0]}
-return {logo:p.info?.imageUrl||p.baseToken?.logoURI||p.baseToken?.logo||"",name:p.baseToken?.name||"Unknown",symbol:p.baseToken?.symbol||"???",address:p.baseToken?.address||"",pairAddress:p.pairAddress||"",price:Number(p.priceUsd||0),liquidity:Number(p.liquidity?.usd||0),volume:Number(p.volume?.h1||0),volume24:Number(p.volume?.h24||0),buys:Number(tx.h1?.buys||0),sells:Number(tx.h1?.sells||0),buys24:Number(tx.h24?.buys||0),sells24:Number(tx.h24?.sells||0),change:Number(p.priceChange?.h1||0),change24:Number(p.priceChange?.h24||0),mcap:Number(p.marketCap||p.fdv||0),fdv:Number(p.fdv||0),pairUrl:p.url||"",updated:Date.now()}}
-async function loadTokens(){if(busy)return;busy=true;setConnection("Loading market data…",false);try{const profiles=await getJSON(API+"/token-profiles/latest/v1");const candidates=profiles.filter(x=>x.chainId==="solana"&&x.tokenAddress).slice(0,25);const rows=await Promise.all(candidates.map(async x=>{try{const d=await getJSON(API+"/latest/dex/tokens/"+encodeURIComponent(x.tokenAddress));const p=bestPair(d.pairs||[]);return p?toToken(p):null}catch(e){return null}}));const unique=new Map();rows.filter(Boolean).forEach(t=>{if(t.address&&!unique.has(t.address))unique.set(t.address,t)});tokens=[...unique.values()];$("token-count").textContent=tokens.length;$("updated-at").textContent="Updated "+new Date().toLocaleTimeString();if(!tokens.length){setConnection("No market pairs returned",false);$("feed").innerHTML='<div class="muted text-sm p-3">No usable Solana pairs returned. Try searching a mint address.</div>';return}const sol=tokens.find(t=>t.symbol==="SOL"||t.symbol==="WSOL");if(sol)$("sol-price").textContent=fmtPrice(sol.price);else $("sol-price").textContent="Not in current feed";setConnection("Market API connected · "+tokens.length+" tokens",true);renderFeed();if(!selected||!tokens.some(t=>t.address===selected.address))choose(tokens[0]);else{const newer=tokens.find(t=>t.address===selected.address);if(newer)choose(newer)}}catch(e){setConnection("Data unavailable: "+e.message,false);$("feed").innerHTML='<div class="text-sm p-3" style="color:var(--amber)">Could not load discovery data. Use search to try a specific token. Details: '+escapeHtml(e.message)+'</div>'}finally{busy=false}}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function renderFeed(){let list=[...tokens];if(category==="hot")list.sort((a,b)=>b.volume-a.volume);else if(category==="trending")list.sort((a,b)=>b.change24-a.change24);else list.sort((a,b)=>(b.buys+b.sells)-(a.buys+a.sells));$("feed").replaceChildren();if(!list.length){$("feed").innerHTML='<div class="muted text-sm p-3">No tokens found.</div>';return}list.forEach(t=>{const b=document.createElement("button");b.className="token-row";b.innerHTML='<div class="flex items-center gap-2 min-w-0">'+(t.logo?'<img src="'+escapeHtml(t.logo)+'" alt="" class="w-8 h-8 rounded-full object-cover" onerror="this.style.display=\'none\'">':'')+'<div class="min-w-0"><div class="font-bold">'+escapeHtml(t.symbol)+' <span class="muted font-normal text-xs">'+escapeHtml(t.name)+'</span></div><div class="mono muted text-[11px] mt-1">'+escapeHtml(short(t.address))+'</div><div class="muted text-[11px] mt-1">1h vol '+fmtMoney(t.volume)+' · '+(t.buys+t.sells)+' tx</div></div><div class="text-right"><div class="font-bold">'+fmtPrice(t.price)+'</div><div class="text-xs mt-1" style="color:'+(t.change24>=0?'var(--green)':'var(--red)')+'">'+(t.change24>0?'+':'')+t.change24.toFixed(2)+'%</div></div></div>';b.onclick=()=>choose(t);$("feed").appendChild(b)})}
-function choose(t){selected=t;$("token-title").textContent=t.symbol+" · "+t.name;$("token-address").textContent=t.address;$("token-price").textContent=fmtPrice(t.price);$("token-mcap").textContent=fmtMoney(t.mcap);$("token-volume").textContent=fmtMoney(t.volume24);$("token-change").textContent=(t.change24>0?"+":"")+t.change24.toFixed(2)+"%";$("token-change").style.color=t.change24>=0?"var(--green)":"var(--red)";$("selected-liquidity").textContent=fmtMoney(t.liquidity);$("liquidity").textContent=fmtMoney(t.liquidity);$("buys").textContent=t.buys.toLocaleString();$("sells").textContent=t.sells.toLocaleString();const total=t.buys+t.sells,share=total?t.buys/total*100:null;$("buy-share").textContent=share===null?"—":share.toFixed(1)+"%";$("buy-bar").style.width=(share??50)+"%";$("sell-bar").style.width=(100-(share??50))+"%";const pill=$("pressure-pill"),summary=$("signal-summary");let label="WAIT",reason="Insufficient transaction activity to assess even basic count imbalance.";if(total>=10&&t.liquidity>0){if(share>=60&&t.change>0){label="BUY PRESSURE — VERIFY";reason="Buy transaction count exceeds sell count and reported 1h price change is positive. This is only a preliminary observation, not an entry signal."}else if(share<=40&&t.change<0){label="SELL PRESSURE — CAUTION";reason="Sell transaction count exceeds buy count and reported 1h price change is negative. Review liquidity and wallet risk before making any decision."}else{label="MIXED — WAIT";reason="Transaction-count imbalance and price change do not show a clear basic alignment."}}else{reason="Not enough reported 1h transactions or liquidity for a basic check. No entry confirmation."}pill.textContent=label;summary.textContent=label.split("—")[0].trim();pill.style.color=label.startsWith("BUY")?"var(--green)":label.startsWith("SELL")?"var(--red)":"var(--amber)";summary.style.color=pill.style.color;$("pressure-reason").textContent=reason;$("chart-note").textContent="Selected pair · snapshot";if(chart){chart.data.labels=["Buys (1h)","Sells (1h)"];chart.data.datasets[0].data=[t.buys,t.sells];chart.data.datasets[1].data=[t.volume,t.volume];chart.update()}const link=$("pair-link");if(t.pairUrl){link.href=t.pairUrl;link.classList.remove("hidden")}else link.classList.add("hidden")}
-async function searchToken(query){query=(query??$("search-input").value).trim();if(!query)return;setConnection("Searching…",false);try{let data;if(query.length>=32&&/^[1-9A-HJ-NP-Za-km-z]+$/.test(query)){try{data=await getJSON(API+"/latest/dex/tokens/"+encodeURIComponent(query));if(!data.pairs?.length)throw Error("No pairs")}catch(e){data=await getJSON(API+"/latest/dex/search?q="+encodeURIComponent(query))}}else{data=await getJSON(API+"/latest/dex/search?q="+encodeURIComponent(query))}const pairs=(data.pairs||[]).filter(p=>p.chainId==="solana");if(!pairs.length){setConnection("No matching Solana pairs",false);alert("No Solana trading pairs were found for that search. A token may be too new or not yet indexed.");return}const ranked=pairs.sort((a,b)=>Number(b.liquidity?.usd||0)-Number(a.liquidity?.usd||0));const found=ranked.map(toToken);found.forEach(t=>{tokens=tokens.filter(x=>x.address!==t.address);tokens.unshift(t)});tokens=tokens.slice(0,60);renderFeed();choose(found[0]);setConnection("Search complete · "+found.length+" matching pairs",true);$("search-input").value=""}catch(e){setConnection("Search failed",false);alert("Search could not be completed: "+e.message)}}
-function initChart(){const ctx=$("activity-chart").getContext("2d");chart=new Chart(ctx,{type:"bar",data:{labels:["Buys (1h)","Sells (1h)"],datasets:[{label:"Transactions",data:[0,0],backgroundColor:["#31e6a0","#ff5d72"],borderRadius:6},{label:"Volume USD (1h)",data:[0,0],hidden:true,backgroundColor:["#31e6a0","#ff5d72"]}]},options:{responsive:true,maintainAspectRatio:false,animation:false,scales:{x:{ticks:{color:"#9aabba"},grid:{color:"#1d2936"}},y:{beginAtZero:true,ticks:{color:"#9aabba"},grid:{color:"#1d2936"}}},plugins:{legend:{display:false}}}})}
-
-function investigatorMint(){const v=$("investigator-mint").value.trim();if(!v){$("investigator-status").textContent="Paste a token address first.";return ""}return v}
-function openInvestigator(url){window.open(url,"_blank","noopener,noreferrer");$("investigator-status").textContent="Opened public source in a new tab. Check the displayed transaction records; this page does not independently verify profit/loss."}
-$("inv-solscan").addEventListener("click",()=>{const m=investigatorMint();if(m)openInvestigator("https://solscan.io/token/"+encodeURIComponent(m))});
-$("inv-dex").addEventListener("click",()=>{const m=investigatorMint();if(m)openInvestigator("https://dexscreener.com/solana/"+encodeURIComponent(m))});
-$("inv-pumppill").addEventListener("click",()=>{const m=investigatorMint();if(m)openInvestigator("https://www.pumppill.org/token/"+encodeURIComponent(m))});
-$("inv-solbundle").addEventListener("click",()=>{if(investigatorMint())openInvestigator("https://solbundle.app/tools/first-buyers-scanner")});
-
-$("search-form").addEventListener("submit",e=>{e.preventDefault();searchToken()});$("refresh-btn").addEventListener("click",loadTokens);document.querySelectorAll(".category").forEach(b=>b.addEventListener("click",()=>{category=b.dataset.cat;document.querySelectorAll(".category").forEach(x=>x.classList.toggle("active",x===b));renderFeed()}));initChart();loadTokens();setInterval(loadTokens,60000);
+function validMint(v){return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v)}
+function updateLinks(){
+ const mint=$("mint").value.trim();
+ $("first").href="https://solbundle.app/tools/first-buyers-scanner";
+ $("report").href="https://www.pumppill.org/scan?ca="+encodeURIComponent(mint);
+ $("chain").href="https://solscan.io/token/"+encodeURIComponent(mint);
+ $("market").href="https://dexscreener.com/solana/"+encodeURIComponent(mint);
+}
+$("scan").addEventListener("click",()=>{
+ const mint=$("mint").value.trim();
+ if(!validMint(mint)){$("status").textContent="Please paste a valid Solana token address.";return}
+ updateLinks();
+ $("status").textContent="Opening public analysis for this token. The First Buyers page may ask you to paste the same address there.";
+ window.open($("report").href,"_blank","noopener,noreferrer");
+ window.open($("first").href,"_blank","noopener,noreferrer");
+});
+$("mint").addEventListener("input",updateLinks);
+updateLinks();
 </script>
 </body>
 </html>
